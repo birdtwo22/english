@@ -8,16 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import { BookOpen, Brain, Search, TrendingUp, Volume2 } from "lucide-react";
+import { BookOpen, Brain, Search, TrendingUp, Volume2, RefreshCw } from "lucide-react";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -28,16 +19,25 @@ export default function Dashboard() {
     avgMastery: 0,
   });
   const [recentWords, setRecentWords] = useState<SavedWord[]>([]);
+  const [allWords, setAllWords] = useState<SavedWord[]>([]);
+  const [pickedWord, setPickedWord] = useState<SavedWord | null>(null);
 
   useEffect(() => {
     getStats().then(setStats);
-    getWords().then((words) => setRecentWords(words.slice(0, 6)));
+    getWords().then((words) => {
+      setRecentWords(words.slice(0, 6));
+      setAllWords(words);
+      if (words.length > 0) {
+        setPickedWord(words[Math.floor(Math.random() * words.length)]);
+      }
+    });
   }, []);
 
-  const chartData = stats.weakWords.map((w) => ({
-    word: w.word,
-    mastery: w.masteryLevel,
-  }));
+  function pickRandom() {
+    if (allWords.length === 0) return;
+    const next = allWords[Math.floor(Math.random() * allWords.length)];
+    setPickedWord(next);
+  }
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -98,54 +98,72 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Weak words chart */}
+        {/* Random word recommendation */}
         <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
-              Words You Struggle With
+            <CardTitle className="text-sm font-medium text-zinc-300 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-violet-500 inline-block" />
+                오늘의 단어
+              </span>
+              {allWords.length > 1 && (
+                <button
+                  onClick={pickRandom}
+                  className="text-zinc-500 hover:text-violet-400 transition-colors"
+                >
+                  <RefreshCw size={13} />
+                </button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {chartData.length === 0 ? (
+            {!pickedWord ? (
               <div className="h-48 flex items-center justify-center text-zinc-500 text-sm">
-                Take a quiz to see your weak words
+                저장된 단어가 없어요
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={chartData} barSize={20}>
-                  <XAxis
-                    dataKey="word"
-                    tick={{ fill: "#71717a", fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis hide domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "#18181b",
-                      border: "1px solid #3f3f46",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                    formatter={(v) => [`${v}%`, "Mastery"]}
-                  />
-                  <Bar dataKey="mastery" radius={4}>
-                    {chartData.map((entry, i) => (
-                      <Cell
-                        key={i}
-                        fill={
-                          entry.mastery < 30
-                            ? "#ef4444"
-                            : entry.mastery < 60
-                            ? "#f59e0b"
-                            : "#10b981"
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <Link href={`/vocabulary/${pickedWord.id}`} className="block group">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-zinc-100 group-hover:text-violet-300 transition-colors">
+                        {pickedWord.word}
+                      </span>
+                      {pickedWord.audioUrl && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); new Audio(pickedWord.audioUrl!).play(); }}
+                          className="text-zinc-500 hover:text-violet-400 transition-colors"
+                        >
+                          <Volume2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    {pickedWord.phonetic && (
+                      <p className="text-zinc-500 text-xs mt-0.5">{pickedWord.phonetic}</p>
+                    )}
+                  </div>
+                  <Badge className="text-xs bg-zinc-800 text-zinc-400 border-zinc-700 shrink-0">
+                    {pickedWord.meanings[0]?.partOfSpeech}
+                  </Badge>
+                </div>
+                <p className="text-zinc-300 text-sm leading-relaxed mb-3">
+                  {pickedWord.meanings[0]?.definitions[0]?.definition}
+                </p>
+                {pickedWord.meanings[0]?.definitions[0]?.example && (
+                  <p className="text-zinc-500 text-xs italic mb-3">
+                    &ldquo;{pickedWord.meanings[0].definitions[0].example}&rdquo;
+                  </p>
+                )}
+                {pickedWord.quizCount > 0 && (
+                  <div>
+                    <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                      <span>Mastery</span>
+                      <span>{pickedWord.masteryLevel}%</span>
+                    </div>
+                    <Progress value={pickedWord.masteryLevel} className="h-1" />
+                  </div>
+                )}
+              </Link>
             )}
           </CardContent>
         </Card>
