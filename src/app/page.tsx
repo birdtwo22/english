@@ -27,15 +27,20 @@ export default function Dashboard() {
       setRecentWords(words.slice(0, 6));
       setAllWords(words);
       if (words.length > 0) {
-        setPickedWord(words[Math.floor(Math.random() * words.length)]);
+        setPickedWord(pickWeakWord(words));
       }
     });
   }, []);
 
+  function pickWeakWord(words: SavedWord[]) {
+    const wrong = words.filter((w) => w.quizCount > 0 && w.quizCount - w.correctCount > 0);
+    const pool = wrong.length > 0 ? wrong : words;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
   function pickRandom() {
     if (allWords.length === 0) return;
-    const next = allWords[Math.floor(Math.random() * allWords.length)];
-    setPickedWord(next);
+    setPickedWord(pickWeakWord(allWords));
   }
 
   return (
@@ -153,11 +158,6 @@ export default function Dashboard() {
                     &ldquo;{pickedWord.meanings[0].definitions[0].example}&rdquo;
                   </p>
                 )}
-                {pickedWord.quizCount > 0 && pickedWord.quizCount - pickedWord.correctCount > 0 && (
-                  <Badge className="bg-red-600/15 text-red-400 border-red-600/25 text-xs w-fit">
-                    {pickedWord.quizCount - pickedWord.correctCount}번 틀림
-                  </Badge>
-                )}
               </Link>
             )}
           </CardContent>
@@ -242,11 +242,6 @@ export default function Dashboard() {
                   <p className="text-zinc-400 text-xs line-clamp-2">
                     {w.meanings[0]?.definitions[0]?.definition}
                   </p>
-                  {w.quizCount > 0 && w.quizCount - w.correctCount > 0 && (
-                    <Badge className="bg-red-600/15 text-red-400 border-red-600/25 text-xs w-fit mt-1">
-                      {w.quizCount - w.correctCount}번 틀림
-                    </Badge>
-                  )}
                 </div>
               ))}
             </div>

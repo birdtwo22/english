@@ -79,11 +79,6 @@ export default function VocabularyPage() {
                 {w.meanings[0]?.definitions[0]?.definition}
               </p>
             </div>
-            {w.quizCount > 0 && w.quizCount - w.correctCount > 0 && (
-              <Badge className="shrink-0 bg-red-600/15 text-red-400 border-red-600/25 text-xs">
-                {w.quizCount - w.correctCount}틀림
-              </Badge>
-            )}
           </CardContent>
         </Card>
       </Link>

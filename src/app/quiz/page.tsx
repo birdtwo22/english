@@ -68,7 +68,13 @@ export default function QuizPage() {
     setGenerating(true);
     setSelected(null);
 
-    const word = words[Math.floor(Math.random() * words.length)];
+    // Weight words by wrong rate — more wrong = higher chance
+    const pool = words.flatMap((w) => {
+      const wrong = w.quizCount - w.correctCount;
+      const weight = wrong > 0 ? 1 + wrong * 2 : 1;
+      return Array(weight).fill(w);
+    });
+    const word = pool[Math.floor(Math.random() * pool.length)];
     const sentence = await getSentence(word);
 
     const distractors = words

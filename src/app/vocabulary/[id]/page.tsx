@@ -12,7 +12,6 @@ import {
   Volume2,
   Trash2,
   BookOpen,
-  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -46,8 +45,6 @@ export default function WordDetailPage() {
       </div>
     );
   }
-
-  const wrongCount = word.quizCount - word.correctCount;
 
   const allSynonyms = [
     ...word.meanings.flatMap((m) => [
@@ -111,15 +108,6 @@ export default function WordDetailPage() {
         </div>
       </div>
 
-      {/* Quiz stats */}
-      {word.quizCount > 0 && wrongCount > 0 && (
-        <div className="mb-6">
-          <Badge className="bg-red-600/15 text-red-400 border-red-600/25">
-            <XCircle size={12} className="mr-1" />
-            {wrongCount}번 틀림 · {word.quizCount}번 시도
-          </Badge>
-        </div>
-      )}
 
       {/* Meanings */}
       <div className="space-y-4 mb-6">
