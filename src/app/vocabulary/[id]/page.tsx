@@ -113,14 +113,12 @@ export default function WordDetailPage() {
 
       {/* Quiz stats */}
       {word.quizCount > 0 && wrongCount > 0 && (
-        <Card className="bg-zinc-900 border-zinc-800 mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-sm text-red-400">
-              <XCircle size={15} />
-              <span>퀴즈에서 <span className="font-semibold">{wrongCount}번</span> 틀렸어요 ({word.quizCount}번 중)</span>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mb-6">
+          <Badge className="bg-red-600/15 text-red-400 border-red-600/25">
+            <XCircle size={12} className="mr-1" />
+            {wrongCount}번 틀림 · {word.quizCount}번 시도
+          </Badge>
+        </div>
       )}
 
       {/* Meanings */}

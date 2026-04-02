@@ -154,9 +154,9 @@ export default function Dashboard() {
                   </p>
                 )}
                 {pickedWord.quizCount > 0 && pickedWord.quizCount - pickedWord.correctCount > 0 && (
-                  <p className="text-xs text-red-400">
-                    퀴즈에서 {pickedWord.quizCount - pickedWord.correctCount}번 틀렸어요
-                  </p>
+                  <Badge className="bg-red-600/15 text-red-400 border-red-600/25 text-xs w-fit">
+                    {pickedWord.quizCount - pickedWord.correctCount}번 틀림
+                  </Badge>
                 )}
               </Link>
             )}
@@ -243,9 +243,9 @@ export default function Dashboard() {
                     {w.meanings[0]?.definitions[0]?.definition}
                   </p>
                   {w.quizCount > 0 && w.quizCount - w.correctCount > 0 && (
-                    <p className="text-xs text-red-400 mt-1">
-                      {w.quizCount - w.correctCount}번 틀렸어요
-                    </p>
+                    <Badge className="bg-red-600/15 text-red-400 border-red-600/25 text-xs w-fit mt-1">
+                      {w.quizCount - w.correctCount}번 틀림
+                    </Badge>
                   )}
                 </div>
               ))}
