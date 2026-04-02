@@ -6,43 +6,51 @@ import { SavedWord } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, CheckCircle, XCircle, RotateCcw, Square, Volume2 } from "lucide-react";
+import { Brain, CheckCircle, XCircle, RotateCcw, Square, Volume2, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 interface Question {
   word: SavedWord;
-  sentence: string;      // example with ___ in place of the word
+  sentence: string;   // sentence with ___ replacing the word
   options: string[];
   correctAnswer: string;
-  hasExample: boolean;   // false = fell back to definition hint
 }
 
-function buildSentence(word: SavedWord): { sentence: string; hasExample: boolean } {
-  // Try to find an example sentence containing the word
+async function getSentence(word: SavedWord): Promise<string> {
+  // 1. Try stored example sentences first
   for (const meaning of word.meanings) {
     for (const def of meaning.definitions) {
       if (!def.example) continue;
       const regex = new RegExp(`\\b${word.word}\\b`, "i");
       if (regex.test(def.example)) {
-        const blanked = def.example.replace(regex, "___");
-        return { sentence: blanked, hasExample: true };
+        return def.example.replace(regex, "___");
       }
     }
   }
-  // Fallback: show definition as hint
-  const def = word.meanings[0]?.definitions[0]?.definition ?? "";
-  return { sentence: def, hasExample: false };
-}
 
-function buildQuestion(word: SavedWord, allWords: SavedWord[]): Question {
-  const { sentence, hasExample } = buildSentence(word);
-  const distractors = allWords
-    .filter((w) => w.id !== word.id)
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 3)
-    .map((w) => w.word);
-  const options = [...distractors, word.word].sort(() => Math.random() - 0.5);
-  return { word, sentence, options, correctAnswer: word.word, hasExample };
+  // 2. Generate via AI
+  try {
+    const definition = word.meanings[0]?.definitions[0]?.definition ?? word.word;
+    const res = await fetch("/api/quiz-sentence", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ word: word.word, definition }),
+    });
+    const data = await res.json();
+    if (data.sentence) {
+      const regex = new RegExp(`\\b${word.word}\\b`, "i");
+      if (regex.test(data.sentence)) {
+        return data.sentence.replace(regex, "___");
+      }
+      // AI returned a sentence but word isn't in it exactly — append blank
+      return data.sentence + " (___)";
+    }
+  } catch {
+    // ignore
+  }
+
+  // 3. Last fallback — use definition
+  return word.meanings[0]?.definitions[0]?.definition ?? word.word;
 }
 
 export default function QuizPage() {
@@ -53,12 +61,25 @@ export default function QuizPage() {
   const [total, setTotal] = useState(0);
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
-  const nextQuestion = useCallback((words: SavedWord[]) => {
+  const nextQuestion = useCallback(async (words: SavedWord[]) => {
     if (words.length < 2) return;
-    const word = words[Math.floor(Math.random() * words.length)];
-    setQuestion(buildQuestion(word, words));
+    setGenerating(true);
     setSelected(null);
+
+    const word = words[Math.floor(Math.random() * words.length)];
+    const sentence = await getSentence(word);
+
+    const distractors = words
+      .filter((w) => w.id !== word.id)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .map((w) => w.word);
+    const options = [...distractors, word.word].sort(() => Math.random() - 0.5);
+
+    setQuestion({ word, sentence, options, correctAnswer: word.word });
+    setGenerating(false);
   }, []);
 
   useEffect(() => {
@@ -76,10 +97,6 @@ export default function QuizPage() {
     if (correct) setScore((s) => s + 1);
     setTotal((t) => t + 1);
     await updateWordStats(question.word.id, correct);
-  }
-
-  function handleNext() {
-    nextQuestion(allWords);
   }
 
   function handleEnd() {
@@ -138,8 +155,6 @@ export default function QuizPage() {
     );
   }
 
-  if (!question) return null;
-
   return (
     <div className="p-8 max-w-2xl mx-auto">
       {/* Header */}
@@ -162,53 +177,53 @@ export default function QuizPage() {
       </div>
 
       {/* Question card */}
-      <Card className="bg-zinc-900 border-zinc-800 mb-6">
+      <Card className="bg-zinc-900 border-zinc-800 mb-6 min-h-[160px]">
         <CardContent className="p-8">
-          {question.hasExample ? (
+          {generating || !question ? (
+            <div className="flex items-center justify-center h-24 gap-2 text-zinc-500">
+              <Loader2 size={18} className="animate-spin" />
+              <span className="text-sm">예문 생성 중...</span>
+            </div>
+          ) : (
             <>
-              <p className="text-zinc-400 text-sm mb-3">빈칸에 들어갈 단어는?</p>
+              <p className="text-zinc-400 text-sm mb-4">빈칸에 들어갈 단어를 고르세요</p>
               <p className="text-xl text-zinc-100 leading-relaxed font-medium">
                 {question.sentence.split("___").map((part, i, arr) => (
                   <span key={i}>
                     {part}
                     {i < arr.length - 1 && (
-                      <span className={`inline-block min-w-[80px] border-b-2 text-center mx-1 ${
-                        selected === null ? "border-violet-500" :
-                        selected === question.correctAnswer ? "border-emerald-500 text-emerald-400" :
-                        "border-red-500 text-red-400"
+                      <span className={`inline-block min-w-[100px] border-b-2 text-center align-bottom mx-1 px-2 ${
+                        selected === null
+                          ? "border-violet-500 text-violet-400"
+                          : selected === question.correctAnswer
+                          ? "border-emerald-500 text-emerald-400"
+                          : "border-red-500 text-red-400"
                       }`}>
-                        {selected !== null ? question.correctAnswer : "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"}
+                        {selected !== null ? question.correctAnswer : ""}
                       </span>
                     )}
                   </span>
                 ))}
               </p>
+              {question.word.audioUrl && selected !== null && (
+                <button
+                  onClick={() => new Audio(question.word.audioUrl!).play()}
+                  className="mt-4 flex items-center gap-2 text-zinc-500 hover:text-violet-400 text-sm transition-colors"
+                >
+                  <Volume2 size={14} />
+                  발음 듣기
+                </button>
+              )}
             </>
-          ) : (
-            <>
-              <p className="text-zinc-400 text-sm mb-3">이 뜻에 맞는 단어는?</p>
-              <p className="text-xl text-zinc-100 leading-relaxed font-medium">
-                &ldquo;{question.sentence}&rdquo;
-              </p>
-            </>
-          )}
-          {question.word.audioUrl && selected !== null && (
-            <button
-              onClick={() => new Audio(question.word.audioUrl!).play()}
-              className="mt-4 flex items-center gap-2 text-zinc-500 hover:text-violet-400 text-sm transition-colors"
-            >
-              <Volume2 size={14} />
-              발음 듣기
-            </button>
           )}
         </CardContent>
       </Card>
 
       {/* Options */}
       <div className="grid grid-cols-1 gap-3 mb-6">
-        {question.options.map((option) => {
+        {(question?.options ?? []).map((option) => {
           const isSelected = selected === option;
-          const isCorrect = option === question.correctAnswer;
+          const isCorrect = option === question?.correctAnswer;
           let style = "bg-zinc-900 border-zinc-700 text-zinc-200 hover:bg-zinc-800 hover:border-zinc-600";
           if (selected !== null) {
             if (isCorrect) style = "bg-emerald-600/15 border-emerald-500/40 text-emerald-300";
@@ -219,7 +234,7 @@ export default function QuizPage() {
             <button
               key={option}
               onClick={() => handleAnswer(option)}
-              disabled={selected !== null}
+              disabled={selected !== null || generating}
               className={`w-full text-left px-5 py-4 rounded-xl border transition-all flex items-center justify-between ${style}`}
             >
               <span className="font-medium">{option}</span>
@@ -231,7 +246,7 @@ export default function QuizPage() {
       </div>
 
       {/* After answer */}
-      {selected !== null && (
+      {selected !== null && question && (
         <div className="space-y-3">
           {selected !== question.correctAnswer && (
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
@@ -239,14 +254,12 @@ export default function QuizPage() {
                 {question.word.meanings[0]?.partOfSpeech}
               </Badge>
               <p className="text-zinc-300 text-sm">{question.word.meanings[0]?.definitions[0]?.definition}</p>
-              {question.word.meanings[0]?.definitions[0]?.example && (
-                <p className="text-zinc-500 text-xs mt-1 italic">
-                  &ldquo;{question.word.meanings[0].definitions[0].example}&rdquo;
-                </p>
-              )}
             </div>
           )}
-          <Button onClick={handleNext} className="w-full bg-violet-600 hover:bg-violet-500 text-white">
+          <Button
+            onClick={() => nextQuestion(allWords)}
+            className="w-full bg-violet-600 hover:bg-violet-500 text-white"
+          >
             다음 문제
           </Button>
         </div>
