@@ -5,7 +5,6 @@ import { getWords, deleteWord } from "@/lib/storage";
 import { SavedWord } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, BookOpen } from "lucide-react";
@@ -61,12 +60,6 @@ export default function VocabularyPage() {
 
   const grouped = sortBy === "date" ? groupByDate(filtered) : null;
 
-  const masteryColor = (level: number) => {
-    if (level >= 80) return "text-emerald-400";
-    if (level >= 50) return "text-amber-400";
-    return "text-red-400";
-  };
-
   function WordCard({ w }: { w: SavedWord }) {
     return (
       <Link href={`/vocabulary/${w.id}`}>
@@ -86,13 +79,10 @@ export default function VocabularyPage() {
                 {w.meanings[0]?.definitions[0]?.definition}
               </p>
             </div>
-            {w.quizCount > 0 && (
-              <div className="text-right w-20 shrink-0">
-                <p className={`text-sm font-semibold ${masteryColor(w.masteryLevel)}`}>
-                  {w.masteryLevel}%
-                </p>
-                <Progress value={w.masteryLevel} className="h-1 mt-1 w-20" />
-              </div>
+            {w.quizCount > 0 && w.quizCount - w.correctCount > 0 && (
+              <Badge className="shrink-0 bg-red-600/15 text-red-400 border-red-600/25 text-xs">
+                {w.quizCount - w.correctCount}틀림
+              </Badge>
             )}
           </CardContent>
         </Card>

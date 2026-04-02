@@ -6,7 +6,6 @@ import { getWords, getStats } from "@/lib/storage";
 import { SavedWord } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Brain, Search, TrendingUp, Volume2, RefreshCw } from "lucide-react";
 
@@ -154,14 +153,10 @@ export default function Dashboard() {
                     &ldquo;{pickedWord.meanings[0].definitions[0].example}&rdquo;
                   </p>
                 )}
-                {pickedWord.quizCount > 0 && (
-                  <div>
-                    <div className="flex justify-between text-xs text-zinc-500 mb-1">
-                      <span>Mastery</span>
-                      <span>{pickedWord.masteryLevel}%</span>
-                    </div>
-                    <Progress value={pickedWord.masteryLevel} className="h-1" />
-                  </div>
+                {pickedWord.quizCount > 0 && pickedWord.quizCount - pickedWord.correctCount > 0 && (
+                  <p className="text-xs text-red-400">
+                    퀴즈에서 {pickedWord.quizCount - pickedWord.correctCount}번 틀렸어요
+                  </p>
                 )}
               </Link>
             )}
@@ -247,14 +242,10 @@ export default function Dashboard() {
                   <p className="text-zinc-400 text-xs line-clamp-2">
                     {w.meanings[0]?.definitions[0]?.definition}
                   </p>
-                  {w.quizCount > 0 && (
-                    <div className="mt-1">
-                      <div className="flex justify-between text-xs text-zinc-500 mb-1">
-                        <span>Mastery</span>
-                        <span>{w.masteryLevel}%</span>
-                      </div>
-                      <Progress value={w.masteryLevel} className="h-1" />
-                    </div>
+                  {w.quizCount > 0 && w.quizCount - w.correctCount > 0 && (
+                    <p className="text-xs text-red-400 mt-1">
+                      {w.quizCount - w.correctCount}번 틀렸어요
+                    </p>
                   )}
                 </div>
               ))}

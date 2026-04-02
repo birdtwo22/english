@@ -6,15 +6,13 @@ import { getWords, deleteWord } from "@/lib/storage";
 import { SavedWord } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft,
   Volume2,
   Trash2,
   BookOpen,
-  Brain,
-  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -49,12 +47,7 @@ export default function WordDetailPage() {
     );
   }
 
-  const masteryColor =
-    word.masteryLevel >= 80
-      ? "text-emerald-400"
-      : word.masteryLevel >= 50
-      ? "text-amber-400"
-      : "text-red-400";
+  const wrongCount = word.quizCount - word.correctCount;
 
   const allSynonyms = [
     ...word.meanings.flatMap((m) => [
@@ -118,23 +111,13 @@ export default function WordDetailPage() {
         </div>
       </div>
 
-      {/* Mastery stats */}
-      {word.quizCount > 0 && (
+      {/* Quiz stats */}
+      {word.quizCount > 0 && wrongCount > 0 && (
         <Card className="bg-zinc-900 border-zinc-800 mb-6">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Brain size={16} className="text-zinc-500" />
-                <span className="text-zinc-400 text-sm">Mastery</span>
-                <span className={`font-bold text-lg ${masteryColor}`}>{word.masteryLevel}%</span>
-              </div>
-              <div className="flex-1">
-                <Progress value={word.masteryLevel} className="h-2" />
-              </div>
-              <div className="flex items-center gap-2 text-sm text-zinc-500 shrink-0">
-                <CheckCircle size={14} className="text-emerald-500" />
-                {word.correctCount}/{word.quizCount} correct
-              </div>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-sm text-red-400">
+              <XCircle size={15} />
+              <span>퀴즈에서 <span className="font-semibold">{wrongCount}번</span> 틀렸어요 ({word.quizCount}번 중)</span>
             </div>
           </CardContent>
         </Card>
