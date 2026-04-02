@@ -54,6 +54,9 @@ export default function SearchPage() {
         const data = await res.json();
         if (!res.ok || !data.options) throw new Error(data.error ?? "Failed to get synonyms");
         setStage({ type: "synonym-select", query: input, options: data.options });
+      } else if (input.trim().includes(" ")) {
+        // Multi-word phrase → AI lookup
+        await lookupPhrase(input.trim());
       } else {
         await lookupEnglishWord(input);
       }
@@ -61,6 +64,23 @@ export default function SearchPage() {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setStage({ type: "idle" });
     }
+  }
+
+  async function lookupPhrase(phrase: string) {
+    const res = await fetch("/api/phrase", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phrase }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.entry) throw new Error(data.error ?? "Failed to look up phrase");
+    setStage({
+      type: "result",
+      entries: [data.entry],
+      korean: data.korean ?? null,
+      resolvedWord: null,
+    });
+    setSaved(await isWordSaved(phrase));
   }
 
   async function lookupEnglishWord(word: string, resolvedFrom?: string) {
@@ -124,7 +144,7 @@ export default function SearchPage() {
     <div className="p-8 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-zinc-100">Search</h1>
-        <p className="text-zinc-400 text-sm mt-1">영어 또는 한글로 검색하세요</p>
+        <p className="text-zinc-400 text-sm mt-1">단어, 구문, 한글로 검색하세요</p>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-3 mb-8">
@@ -133,7 +153,7 @@ export default function SearchPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="단어 검색 (영어 or 한글)..."
+            placeholder="단어, 구문 검색 (영어 or 한글)..."
             className="pl-9 bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-violet-500"
           />
         </div>

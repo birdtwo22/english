@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Volume2, Trash2, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 function formatDateLabel(dateStr: string): string {
   const date = new Date(dateStr);
@@ -39,7 +40,6 @@ function groupByDate(words: SavedWord[]): { label: string; words: SavedWord[] }[
 export default function VocabularyPage() {
   const [words, setWords] = useState<SavedWord[]>([]);
   const [query, setQuery] = useState("");
-  const [expanded, setExpanded] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "mastery" | "alpha">("date");
 
   useEffect(() => {
@@ -69,12 +69,9 @@ export default function VocabularyPage() {
 
   function WordCard({ w }: { w: SavedWord }) {
     return (
-      <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
-        <CardContent className="p-0">
-          <button
-            className="w-full text-left p-4 flex items-center gap-4"
-            onClick={() => setExpanded(expanded === w.id ? null : w.id)}
-          >
+      <Link href={`/vocabulary/${w.id}`}>
+        <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/50 transition-colors cursor-pointer">
+          <CardContent className="p-4 flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-semibold text-zinc-100">{w.word}</span>
@@ -89,77 +86,17 @@ export default function VocabularyPage() {
                 {w.meanings[0]?.definitions[0]?.definition}
               </p>
             </div>
-
-            <div className="flex items-center gap-4 shrink-0">
-              {w.quizCount > 0 && (
-                <div className="text-right w-20">
-                  <p className={`text-sm font-semibold ${masteryColor(w.masteryLevel)}`}>
-                    {w.masteryLevel}%
-                  </p>
-                  <Progress value={w.masteryLevel} className="h-1 mt-1 w-20" />
-                </div>
-              )}
-              {expanded === w.id ? (
-                <ChevronUp size={16} className="text-zinc-500" />
-              ) : (
-                <ChevronDown size={16} className="text-zinc-500" />
-              )}
-            </div>
-          </button>
-
-          {expanded === w.id && (
-            <div className="px-4 pb-4 pt-0 border-t border-zinc-800">
-              <div className="pt-4 space-y-3">
-                {w.meanings.map((m, mi) => (
-                  <div key={mi}>
-                    <Badge className="mb-2 text-xs bg-violet-600/20 text-violet-300 border-violet-600/30">
-                      {m.partOfSpeech}
-                    </Badge>
-                    {m.definitions.slice(0, 2).map((d, di) => (
-                      <div key={di} className="pl-3 border-l-2 border-zinc-700 mb-2">
-                        <p className="text-zinc-300 text-sm">{d.definition}</p>
-                        {d.example && (
-                          <p className="text-zinc-500 text-xs mt-1 italic">
-                            &ldquo;{d.example}&rdquo;
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex gap-2 text-xs text-zinc-500">
-                    {w.quizCount > 0 && (
-                      <span>{w.correctCount}/{w.quizCount} correct</span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    {w.audioUrl && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => new Audio(w.audioUrl!).play()}
-                        className="bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
-                      >
-                        <Volume2 size={14} />
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(w.id)}
-                      className="bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-400/30 hover:bg-red-400/10"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                </div>
+            {w.quizCount > 0 && (
+              <div className="text-right w-20 shrink-0">
+                <p className={`text-sm font-semibold ${masteryColor(w.masteryLevel)}`}>
+                  {w.masteryLevel}%
+                </p>
+                <Progress value={w.masteryLevel} className="h-1 mt-1 w-20" />
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      </Link>
     );
   }
 
