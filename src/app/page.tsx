@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [recentWords, setRecentWords] = useState<SavedWord[]>([]);
   const [allWords, setAllWords] = useState<SavedWord[]>([]);
   const [pickedWord, setPickedWord] = useState<SavedWord | null>(null);
+  const [shownWrongIds, setShownWrongIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     getStats().then(setStats);
@@ -27,20 +28,31 @@ export default function Dashboard() {
       setRecentWords(words.slice(0, 6));
       setAllWords(words);
       if (words.length > 0) {
-        setPickedWord(pickWeakWord(words));
+        const wrongWords = words.filter((w) => w.quizCount > 0 && w.quizCount - w.correctCount > 0);
+        const first = wrongWords.length > 0
+          ? wrongWords[Math.floor(Math.random() * wrongWords.length)]
+          : words[Math.floor(Math.random() * words.length)];
+        setPickedWord(first);
+        if (wrongWords.length > 0) setShownWrongIds(new Set([first.id]));
       }
     });
   }, []);
 
-  function pickWeakWord(words: SavedWord[]) {
-    const wrong = words.filter((w) => w.quizCount > 0 && w.quizCount - w.correctCount > 0);
-    const pool = wrong.length > 0 ? wrong : words;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
   function pickRandom() {
     if (allWords.length === 0) return;
-    setPickedWord(pickWeakWord(allWords));
+    const wrongWords = allWords.filter((w) => w.quizCount > 0 && w.quizCount - w.correctCount > 0);
+    const unseenWrong = wrongWords.filter((w) => !shownWrongIds.has(w.id));
+
+    if (unseenWrong.length > 0) {
+      const next = unseenWrong[Math.floor(Math.random() * unseenWrong.length)];
+      setPickedWord(next);
+      setShownWrongIds((prev) => new Set([...prev, next.id]));
+    } else {
+      // All wrong words shown — pick from correct/unquizzed
+      const others = allWords.filter((w) => !(w.quizCount > 0 && w.quizCount - w.correctCount > 0));
+      const pool = others.length > 0 ? others : allWords;
+      setPickedWord(pool[Math.floor(Math.random() * pool.length)]);
+    }
   }
 
   return (
