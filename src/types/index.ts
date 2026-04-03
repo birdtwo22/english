@@ -34,6 +34,7 @@ export interface SavedWord {
   quizCount: number;
   correctCount: number;
   lastQuizzedAt?: string;
+  koreanTranslation?: string;
 }
 
 export interface QuizQuestion {

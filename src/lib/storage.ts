@@ -12,6 +12,7 @@ type Row = {
   quiz_count: number;
   correct_count: number;
   last_quizzed_at: string | null;
+  korean_translation: string | null;
 };
 
 function rowToWord(row: Row): SavedWord {
@@ -26,6 +27,7 @@ function rowToWord(row: Row): SavedWord {
     quizCount: row.quiz_count,
     correctCount: row.correct_count,
     lastQuizzedAt: row.last_quizzed_at ?? undefined,
+    koreanTranslation: row.korean_translation ?? undefined,
   };
 }
 
@@ -50,6 +52,7 @@ export async function saveWord(word: SavedWord): Promise<void> {
     quiz_count: word.quizCount,
     correct_count: word.correctCount,
     last_quizzed_at: word.lastQuizzedAt ?? null,
+    korean_translation: word.koreanTranslation ?? null,
   });
   if (error) throw error;
 }

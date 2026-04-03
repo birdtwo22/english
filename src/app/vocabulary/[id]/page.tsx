@@ -82,6 +82,9 @@ export default function WordDetailPage() {
           {word.phonetic && (
             <p className="text-zinc-400 text-sm mt-1">{word.phonetic}</p>
           )}
+          {word.koreanTranslation && (
+            <p className="text-violet-300 text-lg font-medium mt-1">{word.koreanTranslation}</p>
+          )}
           <p className="text-zinc-500 text-xs mt-2">
             Saved {new Date(word.savedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
           </p>

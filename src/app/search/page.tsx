@@ -122,6 +122,7 @@ export default function SearchPage() {
       masteryLevel: 0,
       quizCount: 0,
       correctCount: 0,
+      koreanTranslation: stage.korean ?? undefined,
     };
     await saveWord(word);
     setSaved(true);

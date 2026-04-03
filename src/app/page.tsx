@@ -162,6 +162,9 @@ export default function Dashboard() {
                     {pickedWord.meanings[0]?.partOfSpeech}
                   </Badge>
                 </div>
+                {pickedWord.koreanTranslation && (
+                  <p className="text-violet-300 text-sm font-medium mb-1">{pickedWord.koreanTranslation}</p>
+                )}
                 <p className="text-zinc-300 text-sm leading-relaxed mb-3">
                   {pickedWord.meanings[0]?.definitions[0]?.definition}
                 </p>
