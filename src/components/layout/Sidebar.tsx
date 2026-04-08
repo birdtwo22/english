@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Search, BookOpen, Brain } from "lucide-react";
+import { LayoutDashboard, Search, BookOpen, Brain, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/chat", icon: MessageCircle, label: "Vocab Chat" },
   { href: "/search", icon: Search, label: "Search" },
   { href: "/vocabulary", icon: BookOpen, label: "Vocabulary" },
   { href: "/quiz", icon: Brain, label: "Quiz" },
