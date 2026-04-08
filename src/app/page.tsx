@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getWords, getStats } from "@/lib/storage";
-import { translateToKorean } from "@/lib/translate";
 import { SavedWord } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,20 +31,28 @@ export default function Dashboard() {
       setRecentWords(recent);
       setAllWords(words);
 
-      // Translate definitions for recent words that don't have Korean
+      // Batch translate definitions for words without Korean
       const toTranslate = recent.filter(
         (w) => !w.meanings[0]?.definitions[0]?.koreanDefinition
       );
-      const translations = await Promise.all(
-        toTranslate.map((w) =>
-          translateToKorean(w.meanings[0]?.definitions[0]?.definition ?? "")
-        )
-      );
-      const map: Record<string, string> = {};
-      toTranslate.forEach((w, i) => {
-        if (translations[i]) map[w.id] = translations[i]!;
-      });
-      setRecentKoreanDefs(map);
+      if (toTranslate.length > 0) {
+        try {
+          const texts = toTranslate.map(
+            (w) => w.meanings[0]?.definitions[0]?.definition ?? ""
+          );
+          const res = await fetch("/api/translate-definitions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ texts }),
+          });
+          const data = await res.json();
+          const map: Record<string, string> = {};
+          toTranslate.forEach((w, i) => {
+            if (data.translations?.[i]) map[w.id] = data.translations[i];
+          });
+          setRecentKoreanDefs(map);
+        } catch {}
+      }
       if (words.length > 0) {
         const wrongWords = words.filter((w) => w.quizCount > 0 && w.quizCount - w.correctCount > 0);
         const first = wrongWords.length > 0
@@ -66,7 +73,14 @@ export default function Dashboard() {
       return;
     }
     setPickedWordKoreanDef(null);
-    translateToKorean(def.definition).then(setPickedWordKoreanDef);
+    fetch("/api/translate-definitions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts: [def.definition] }),
+    })
+      .then((r) => r.json())
+      .then((d) => setPickedWordKoreanDef(d.translations?.[0] ?? null))
+      .catch(() => {});
   }, [pickedWord?.id]);
 
   function pickRandom() {
