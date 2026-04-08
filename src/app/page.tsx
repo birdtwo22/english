@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getWords, getStats } from "@/lib/storage";
+import { translateToKorean } from "@/lib/translate";
 import { SavedWord } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,15 +19,33 @@ export default function Dashboard() {
     avgMastery: 0,
   });
   const [recentWords, setRecentWords] = useState<SavedWord[]>([]);
+  const [recentKoreanDefs, setRecentKoreanDefs] = useState<Record<string, string>>({});
   const [allWords, setAllWords] = useState<SavedWord[]>([]);
   const [pickedWord, setPickedWord] = useState<SavedWord | null>(null);
+  const [pickedWordKoreanDef, setPickedWordKoreanDef] = useState<string | null>(null);
   const [shownWrongIds, setShownWrongIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     getStats().then(setStats);
-    getWords().then((words) => {
-      setRecentWords(words.slice(0, 6));
+    getWords().then(async (words) => {
+      const recent = words.slice(0, 6);
+      setRecentWords(recent);
       setAllWords(words);
+
+      // Translate definitions for recent words that don't have Korean
+      const toTranslate = recent.filter(
+        (w) => !w.meanings[0]?.definitions[0]?.koreanDefinition
+      );
+      const translations = await Promise.all(
+        toTranslate.map((w) =>
+          translateToKorean(w.meanings[0]?.definitions[0]?.definition ?? "")
+        )
+      );
+      const map: Record<string, string> = {};
+      toTranslate.forEach((w, i) => {
+        if (translations[i]) map[w.id] = translations[i]!;
+      });
+      setRecentKoreanDefs(map);
       if (words.length > 0) {
         const wrongWords = words.filter((w) => w.quizCount > 0 && w.quizCount - w.correctCount > 0);
         const first = wrongWords.length > 0
@@ -37,6 +56,18 @@ export default function Dashboard() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (!pickedWord) return;
+    const def = pickedWord.meanings[0]?.definitions[0];
+    if (!def) return;
+    if (def.koreanDefinition) {
+      setPickedWordKoreanDef(def.koreanDefinition);
+      return;
+    }
+    setPickedWordKoreanDef(null);
+    translateToKorean(def.definition).then(setPickedWordKoreanDef);
+  }, [pickedWord?.id]);
 
   function pickRandom() {
     if (allWords.length === 0) return;
@@ -166,8 +197,7 @@ export default function Dashboard() {
                   <p className="text-violet-300 text-sm font-medium mb-1">{pickedWord.koreanTranslation}</p>
                 )}
                 <p className="text-zinc-300 text-sm leading-relaxed mb-3">
-                  {pickedWord.meanings[0]?.definitions[0]?.koreanDefinition
-                    ?? pickedWord.meanings[0]?.definitions[0]?.definition}
+                  {pickedWordKoreanDef ?? pickedWord.meanings[0]?.definitions[0]?.definition}
                 </p>
                 {pickedWord.meanings[0]?.definitions[0]?.example && (
                   <p className="text-zinc-500 text-xs italic mb-3">
@@ -257,6 +287,7 @@ export default function Dashboard() {
                   </div>
                   <p className="text-zinc-400 text-xs line-clamp-2">
                     {w.meanings[0]?.definitions[0]?.koreanDefinition
+                      ?? recentKoreanDefs[w.id]
                       ?? w.meanings[0]?.definitions[0]?.definition}
                   </p>
                 </div>
