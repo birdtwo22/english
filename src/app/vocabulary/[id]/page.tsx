@@ -125,8 +125,11 @@ export default function WordDetailPage() {
                   <div key={di} className="pl-3 border-l-2 border-zinc-700">
                     <p className="text-zinc-200 text-sm leading-relaxed">
                       <span className="text-zinc-500 text-xs mr-2">{di + 1}.</span>
-                      {d.definition}
+                      {d.koreanDefinition ?? d.definition}
                     </p>
+                    {d.koreanDefinition && (
+                      <p className="text-zinc-500 text-xs mt-0.5">{d.definition}</p>
+                    )}
                     {d.example && (
                       <p className="text-zinc-500 text-xs mt-1 italic">
                         &ldquo;{d.example}&rdquo;

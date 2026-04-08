@@ -75,13 +75,11 @@ export default function VocabularyPage() {
                   {w.meanings[0]?.partOfSpeech}
                 </Badge>
               </div>
-              {w.koreanTranslation ? (
-                <p className="text-zinc-300 text-sm truncate">{w.koreanTranslation}</p>
-              ) : (
-                <p className="text-zinc-400 text-sm truncate">
-                  {w.meanings[0]?.definitions[0]?.definition}
-                </p>
-              )}
+              <p className="text-zinc-300 text-sm truncate">
+                {w.koreanTranslation
+                  || w.meanings[0]?.definitions[0]?.koreanDefinition
+                  || w.meanings[0]?.definitions[0]?.definition}
+              </p>
             </div>
           </CardContent>
         </Card>

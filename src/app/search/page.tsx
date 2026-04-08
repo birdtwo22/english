@@ -88,9 +88,38 @@ export default function SearchPage() {
       lookupWord(word),
       translateToKorean(word),
     ]);
+
+    // Translate all definitions to Korean
+    const allDefs = entries.flatMap((e) =>
+      e.meanings.flatMap((m) => m.definitions.map((d) => d.definition))
+    );
+    let translations: string[] = [];
+    try {
+      const res = await fetch("/api/translate-definitions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texts: allDefs }),
+      });
+      const data = await res.json();
+      translations = data.translations ?? [];
+    } catch {}
+
+    // Inject koreanDefinition into each definition
+    let idx = 0;
+    const translatedEntries = entries.map((e) => ({
+      ...e,
+      meanings: e.meanings.map((m) => ({
+        ...m,
+        definitions: m.definitions.map((d) => ({
+          ...d,
+          koreanDefinition: translations[idx++] || undefined,
+        })),
+      })),
+    }));
+
     setStage({
       type: "result",
-      entries,
+      entries: translatedEntries,
       korean,
       resolvedWord: resolvedFrom ?? null,
     });
@@ -294,8 +323,11 @@ export default function SearchPage() {
                     <div key={di} className="pl-3 border-l-2 border-zinc-700">
                       <p className="text-zinc-200 text-sm leading-relaxed">
                         <span className="text-zinc-500 text-xs mr-2">{di + 1}.</span>
-                        {def.definition}
+                        {def.koreanDefinition ?? def.definition}
                       </p>
+                      {def.koreanDefinition && (
+                        <p className="text-zinc-500 text-xs mt-0.5">{def.definition}</p>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -166,7 +166,8 @@ export default function Dashboard() {
                   <p className="text-violet-300 text-sm font-medium mb-1">{pickedWord.koreanTranslation}</p>
                 )}
                 <p className="text-zinc-300 text-sm leading-relaxed mb-3">
-                  {pickedWord.meanings[0]?.definitions[0]?.definition}
+                  {pickedWord.meanings[0]?.definitions[0]?.koreanDefinition
+                    ?? pickedWord.meanings[0]?.definitions[0]?.definition}
                 </p>
                 {pickedWord.meanings[0]?.definitions[0]?.example && (
                   <p className="text-zinc-500 text-xs italic mb-3">
@@ -255,7 +256,8 @@ export default function Dashboard() {
                     )}
                   </div>
                   <p className="text-zinc-400 text-xs line-clamp-2">
-                    {w.meanings[0]?.definitions[0]?.definition}
+                    {w.meanings[0]?.definitions[0]?.koreanDefinition
+                      ?? w.meanings[0]?.definitions[0]?.definition}
                   </p>
                 </div>
               ))}

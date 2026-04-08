@@ -8,6 +8,7 @@ export interface Definition {
   example?: string;
   synonyms?: string[];
   antonyms?: string[];
+  koreanDefinition?: string;
 }
 
 export interface Meaning {
