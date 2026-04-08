@@ -20,12 +20,20 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "user",
-          content: `한국어 단어 또는 표현 "${query}"의 뉘앙스를 커버하는 영어 단어/표현을 3~5개 알려줘.
-각 단어마다 한국어로 뉘앙스 차이를 15자 이내로 설명하고, 짧은 영어 예문 1개를 제시해줘.
+          content: `You are a bilingual Korean-English dictionary assistant.
 
-반드시 아래 JSON 형식만 반환해 (다른 텍스트 없이):
+The user searched for the Korean word/expression: "${query}"
+
+List 3-5 English words that cover the nuances of "${query}". Each must be a real English word (NOT Korean).
+
+For each English word, provide:
+- "word": the English word only (e.g. "appropriate", "suitable") — MUST be English
+- "nuance": a short Korean explanation of how this word differs (under 20 chars)
+- "example": one short English example sentence using the word
+
+Return ONLY a JSON array, no other text:
 [
-  { "word": "영어단어", "nuance": "한국어 뉘앙스 설명", "example": "Short English example." }
+  { "word": "appropriate", "nuance": "격식적이고 공식적인 상황", "example": "That is an appropriate response." }
 ]`,
         },
       ],
