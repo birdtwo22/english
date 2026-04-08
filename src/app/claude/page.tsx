@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { saveWord, isWordSaved } from "@/lib/storage";
 import { SavedWord, Meaning } from "@/types";
@@ -12,7 +12,7 @@ import Link from "next/link";
 
 type Status = "loading" | "ready" | "saving" | "saved" | "already" | "error";
 
-export default function ClaudePage() {
+function ClaudePageInner() {
   const params = useSearchParams();
   const router = useRouter();
 
@@ -187,5 +187,17 @@ export default function ClaudePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ClaudePage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 max-w-xl mx-auto flex items-center justify-center mt-20">
+        <Loader2 size={20} className="animate-spin text-zinc-500" />
+      </div>
+    }>
+      <ClaudePageInner />
+    </Suspense>
   );
 }
