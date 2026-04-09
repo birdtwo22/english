@@ -141,7 +141,7 @@ export default function VocabularyPage() {
                 <span className="text-xs text-zinc-600">{group.length} words</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {group.map((w) => <WordCard key={w.id} w={w} />)}
               </div>
             </div>
