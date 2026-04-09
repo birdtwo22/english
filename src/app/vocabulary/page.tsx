@@ -64,7 +64,7 @@ export default function VocabularyPage() {
     return (
       <Link href={`/vocabulary/${w.id}`}>
         <Card className="bg-zinc-900 border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/50 transition-colors cursor-pointer">
-          <CardContent className="p-6 flex items-center gap-4">
+          <CardContent className="p-4 flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-semibold text-zinc-100">{w.word}</span>
@@ -141,7 +141,7 @@ export default function VocabularyPage() {
                 <span className="text-xs text-zinc-600">{group.length} words</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              <div className="space-y-8">
+              <div className="space-y-12">
                 {group.map((w) => <WordCard key={w.id} w={w} />)}
               </div>
             </div>
