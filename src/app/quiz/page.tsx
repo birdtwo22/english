@@ -62,11 +62,13 @@ export default function QuizPage() {
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [sentenceKorean, setSentenceKorean] = useState<string | null>(null);
 
   const nextQuestion = useCallback(async (words: SavedWord[]) => {
     if (words.length < 2) return;
     setGenerating(true);
     setSelected(null);
+    setSentenceKorean(null);
 
     // Weight words by wrong rate — more wrong = higher chance
     const pool = words.flatMap((w) => {
@@ -103,6 +105,17 @@ export default function QuizPage() {
     if (correct) setScore((s) => s + 1);
     setTotal((t) => t + 1);
     await updateWordStats(question.word.id, correct);
+
+    // Translate the sentence (replace ___ with the correct word)
+    const fullSentence = question.sentence.replace("___", question.correctAnswer);
+    fetch("/api/translate-definitions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts: [fullSentence] }),
+    })
+      .then((r) => r.json())
+      .then((data) => setSentenceKorean(data.translations?.[0] ?? null))
+      .catch(() => null);
   }
 
   function handleEnd() {
@@ -277,6 +290,11 @@ export default function QuizPage() {
                 </div>
                 {(def?.koreanDefinition || def?.definition) && (
                   <p className="text-zinc-400 text-sm leading-relaxed">{def.koreanDefinition ?? def.definition}</p>
+                )}
+                {sentenceKorean && (
+                  <p className="text-zinc-400 text-sm mt-2 border-l-2 border-zinc-600 pl-2">
+                    {sentenceKorean}
+                  </p>
                 )}
                 {def?.example && (
                   <p className="text-zinc-500 text-xs italic mt-1.5 border-l-2 border-zinc-700 pl-2">
