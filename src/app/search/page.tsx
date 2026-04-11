@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useCallback } from "react";
 import { lookupWord, getAudioUrl, getPhoneticText } from "@/lib/dictionary";
 import { translateToKorean, isKorean } from "@/lib/translate";
 import { saveWord, isWordSaved, deleteWord } from "@/lib/storage";
@@ -19,6 +18,7 @@ import {
   Loader2,
   MessageSquareQuote,
   ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 
 type Stage =
@@ -28,18 +28,18 @@ type Stage =
   | { type: "result"; entries: DictionaryEntry[]; korean: string | null; resolvedWord: string | null };
 
 export default function SearchPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [query, setQuery] = useState("");
   const [stage, setStage] = useState<Stage>({ type: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [savedWordId, setSavedWordId] = useState<string | null>(null);
+  const [history, setHistory] = useState<string[]>([]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
-    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    setHistory([]);
+    doSearch(query.trim());
   }
 
   const doSearch = useCallback(async (input: string) => {
@@ -70,14 +70,6 @@ export default function SearchPage() {
       setStage({ type: "idle" });
     }
   }, []);
-
-  useEffect(() => {
-    const q = searchParams.get("q");
-    if (q) {
-      setQuery(q);
-      doSearch(q);
-    }
-  }, [searchParams, doSearch]);
 
   async function lookupPhrase(phrase: string) {
     const res = await fetch("/api/phrase", {
@@ -145,7 +137,19 @@ export default function SearchPage() {
 
   async function handleSelectSynonym(option: SynonymOption) {
     setError(null);
-    router.push(`/search?q=${encodeURIComponent(option.word)}`);
+    if (stage.type === "synonym-select") {
+      setHistory((h) => [...h, stage.query]);
+    }
+    setQuery(option.word);
+    doSearch(option.word);
+  }
+
+  function handleBack() {
+    const prev = history[history.length - 1];
+    if (!prev) return;
+    setHistory((h) => h.slice(0, -1));
+    setQuery(prev);
+    doSearch(prev);
   }
 
   async function handleSave() {
@@ -263,6 +267,15 @@ export default function SearchPage() {
       {/* Dictionary result */}
       {stage.type === "result" && entries.length > 0 && (
         <div className="space-y-5">
+          {history.length > 0 && (
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-200 transition-colors"
+            >
+              <ArrowLeft size={14} />
+              {history[history.length - 1]}
+            </button>
+          )}
           {/* Korean → English indicator */}
           {stage.resolvedWord && (
             <div className="flex items-center gap-2 text-sm text-zinc-400">
@@ -356,7 +369,11 @@ export default function SearchPage() {
                       {meaning.synonyms!.slice(0, 6).map((s) => (
                         <button
                           key={s}
-                          onClick={() => router.push(`/search?q=${encodeURIComponent(s)}`)}
+                          onClick={() => {
+  if (stage.type === "result") setHistory((h) => [...h, stage.entries[0].word]);
+  setQuery(s);
+  doSearch(s);
+}}
                           className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded-md transition-colors"
                         >
                           {s}
