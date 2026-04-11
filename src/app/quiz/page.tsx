@@ -275,8 +275,8 @@ export default function QuizPage() {
                   )}
                   {korean && <span className="text-violet-300 text-sm">{korean}</span>}
                 </div>
-                {def?.definition && (
-                  <p className="text-zinc-400 text-sm leading-relaxed">{def.definition}</p>
+                {(def?.koreanDefinition || def?.definition) && (
+                  <p className="text-zinc-400 text-sm leading-relaxed">{def.koreanDefinition ?? def.definition}</p>
                 )}
                 {def?.example && (
                   <p className="text-zinc-500 text-xs italic mt-1.5 border-l-2 border-zinc-700 pl-2">
