@@ -204,7 +204,7 @@ export default function ChatPage() {
                     size="sm"
                     className={`w-full mt-1 ${
                       msg.saved
-                        ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-red-600/20 hover:text-red-400 hover:border-red-600/30"
+                        ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-zinc-700/40 hover:text-zinc-300 hover:border-zinc-600"
                         : "bg-violet-600 hover:bg-violet-500 text-white"
                     }`}
                   >
