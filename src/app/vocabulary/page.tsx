@@ -148,7 +148,7 @@ export default function VocabularyPage() {
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {filtered.map((w) => <WordCard key={w.id} w={w} />)}
         </div>
       )}
