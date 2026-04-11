@@ -254,14 +254,38 @@ export default function QuizPage() {
       {/* After answer */}
       {selected !== null && question && (
         <div className="space-y-3">
-          {selected !== question.correctAnswer && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <Badge className="mb-2 bg-violet-600/20 text-violet-300 border-violet-600/30 text-xs">
-                {question.word.meanings[0]?.partOfSpeech}
-              </Badge>
-              <p className="text-zinc-300 text-sm">{question.word.meanings[0]?.definitions[0]?.definition}</p>
-            </div>
-          )}
+          {(() => {
+            const correct = selected === question.correctAnswer;
+            const def = question.word.meanings[0]?.definitions[0];
+            const pos = question.word.meanings[0]?.partOfSpeech;
+            const korean = question.word.koreanTranslation;
+            return (
+              <div className={`rounded-xl p-4 border ${
+                correct
+                  ? "bg-emerald-600/10 border-emerald-600/30"
+                  : "bg-red-600/10 border-red-600/30"
+              }`}>
+                <p className={`text-sm font-semibold mb-2 ${correct ? "text-emerald-400" : "text-red-400"}`}>
+                  {correct ? "✓ 정답!" : `✗ 오답 — 정답은 "${question.correctAnswer}"`}
+                </p>
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className="text-zinc-100 font-bold">{question.correctAnswer}</span>
+                  {pos && (
+                    <Badge className="bg-violet-600/20 text-violet-300 border-violet-600/30 text-xs">{pos}</Badge>
+                  )}
+                  {korean && <span className="text-violet-300 text-sm">{korean}</span>}
+                </div>
+                {def?.definition && (
+                  <p className="text-zinc-400 text-sm leading-relaxed">{def.definition}</p>
+                )}
+                {def?.example && (
+                  <p className="text-zinc-500 text-xs italic mt-1.5 border-l-2 border-zinc-700 pl-2">
+                    &ldquo;{def.example}&rdquo;
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           <Button
             onClick={() => nextQuestion(allWords)}
             className="w-full bg-violet-600 hover:bg-violet-500 text-white"
