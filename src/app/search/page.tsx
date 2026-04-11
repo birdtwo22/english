@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { lookupWord, getAudioUrl, getPhoneticText } from "@/lib/dictionary";
 import { translateToKorean, isKorean } from "@/lib/translate";
-import { saveWord, isWordSaved } from "@/lib/storage";
+import { saveWord, isWordSaved, deleteWord } from "@/lib/storage";
 import { DictionaryEntry, SavedWord } from "@/types";
 import { SynonymOption } from "@/app/api/synonyms/route";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ export default function SearchPage() {
   const [stage, setStage] = useState<Stage>({ type: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [savedWordId, setSavedWordId] = useState<string | null>(null);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -41,6 +42,7 @@ export default function SearchPage() {
   async function doSearch(input: string) {
     setError(null);
     setSaved(false);
+    setSavedWordId(null);
     setStage({ type: "loading" });
 
     try {
@@ -141,8 +143,9 @@ export default function SearchPage() {
   async function handleSave() {
     if (stage.type !== "result") return;
     const entry = stage.entries[0];
+    const id = crypto.randomUUID();
     const word: SavedWord = {
-      id: crypto.randomUUID(),
+      id,
       word: entry.word,
       phonetic: getPhoneticText(stage.entries),
       audioUrl: getAudioUrl(stage.entries),
@@ -155,6 +158,14 @@ export default function SearchPage() {
     };
     await saveWord(word);
     setSaved(true);
+    setSavedWordId(id);
+  }
+
+  async function handleUnsave() {
+    if (!savedWordId) return;
+    await deleteWord(savedWordId);
+    setSaved(false);
+    setSavedWordId(null);
   }
 
   // Derived values for result stage
@@ -294,11 +305,10 @@ export default function SearchPage() {
                 </Button>
               )}
               <Button
-                onClick={handleSave}
-                disabled={saved}
+                onClick={saved ? handleUnsave : handleSave}
                 className={
                   saved
-                    ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-emerald-600/20"
+                    ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-zinc-700/40 hover:text-zinc-300 hover:border-zinc-600"
                     : "bg-violet-600 hover:bg-violet-500 text-white"
                 }
               >
