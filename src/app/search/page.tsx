@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { lookupWord, getAudioUrl, getPhoneticText } from "@/lib/dictionary";
 import { translateToKorean, isKorean } from "@/lib/translate";
 import { saveWord, isWordSaved, deleteWord } from "@/lib/storage";
@@ -27,7 +28,9 @@ type Stage =
   | { type: "result"; entries: DictionaryEntry[]; korean: string | null; resolvedWord: string | null };
 
 export default function SearchPage() {
-  const [query, setQuery] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [stage, setStage] = useState<Stage>({ type: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -36,10 +39,10 @@ export default function SearchPage() {
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
-    doSearch(query.trim());
+    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
   }
 
-  async function doSearch(input: string) {
+  const doSearch = useCallback(async (input: string) => {
     setError(null);
     setSaved(false);
     setSavedWordId(null);
@@ -66,7 +69,15 @@ export default function SearchPage() {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setStage({ type: "idle" });
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setQuery(q);
+      doSearch(q);
+    }
+  }, [searchParams, doSearch]);
 
   async function lookupPhrase(phrase: string) {
     const res = await fetch("/api/phrase", {
@@ -134,14 +145,7 @@ export default function SearchPage() {
 
   async function handleSelectSynonym(option: SynonymOption) {
     setError(null);
-    const koreanQuery = stage.type === "synonym-select" ? stage.query : query;
-    setStage({ type: "loading" });
-    try {
-      await lookupEnglishWord(option.word, koreanQuery);
-    } catch {
-      setError(`"${option.word}" not found in dictionary`);
-      setStage({ type: "idle" });
-    }
+    router.push(`/search?q=${encodeURIComponent(option.word)}`);
   }
 
   async function handleSave() {
@@ -352,7 +356,7 @@ export default function SearchPage() {
                       {meaning.synonyms!.slice(0, 6).map((s) => (
                         <button
                           key={s}
-                          onClick={() => { setQuery(s); doSearch(s); }}
+                          onClick={() => router.push(`/search?q=${encodeURIComponent(s)}`)}
                           className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded-md transition-colors"
                         >
                           {s}
