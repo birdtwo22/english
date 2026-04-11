@@ -38,7 +38,9 @@ export default function SearchPage() {
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
-    setHistory([]);
+    if (stage.type === "result") {
+      setHistory((h) => [...h, stage.entries[0].word]);
+    }
     doSearch(query.trim());
   }
 
