@@ -82,7 +82,9 @@ export default function SearchPage() {
       korean: data.korean ?? null,
       resolvedWord: null,
     });
-    setSaved(await isWordSaved(phrase));
+    const existingId = await isWordSaved(phrase);
+    setSaved(!!existingId);
+    setSavedWordId(existingId);
   }
 
   async function lookupEnglishWord(word: string, resolvedFrom?: string) {
@@ -125,7 +127,9 @@ export default function SearchPage() {
       korean,
       resolvedWord: resolvedFrom ?? null,
     });
-    setSaved(await isWordSaved(word));
+    const existingId = await isWordSaved(word);
+    setSaved(!!existingId);
+    setSavedWordId(existingId);
   }
 
   async function handleSelectSynonym(option: SynonymOption) {

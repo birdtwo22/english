@@ -31,7 +31,7 @@ function ClaudePageInner() {
   const checkAndSave = useCallback(async (autoSave: boolean) => {
     if (!word) { setStatus("error"); return; }
     const already = await isWordSaved(word);
-    if (already) { setStatus("already"); return; }
+    if (already !== null) { setStatus("already"); return; }
     if (autoSave) {
       await doSave();
     } else {

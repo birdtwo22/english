@@ -63,9 +63,9 @@ export default function ChatPage() {
       });
       const data: WordData = await res.json();
 
-      let alreadySaved = false;
+      let alreadySavedId: string | null = null;
       if (data.word) {
-        alreadySaved = await isWordSaved(data.word);
+        alreadySavedId = await isWordSaved(data.word);
       }
 
       const assistantMsg: Message = {
@@ -73,7 +73,8 @@ export default function ChatPage() {
         role: "assistant",
         text: data.reply,
         wordData: data.word ? data : undefined,
-        saved: alreadySaved,
+        saved: !!alreadySavedId,
+        savedWordId: alreadySavedId ?? undefined,
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch {

@@ -88,14 +88,14 @@ export async function updateWordStats(
   return rowToWord({ ...row, quiz_count: quizCount, correct_count: correctCount, mastery_level: masteryLevel, last_quizzed_at: lastQuizzedAt });
 }
 
-export async function isWordSaved(wordText: string): Promise<boolean> {
+export async function isWordSaved(wordText: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("saved_words")
     .select("id")
     .ilike("word", wordText)
     .maybeSingle();
-  if (error) return false;
-  return !!data;
+  if (error || !data) return null;
+  return (data as { id: string }).id;
 }
 
 export async function getStats() {
