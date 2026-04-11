@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { saveWord, isWordSaved } from "@/lib/storage";
+import { saveWord, isWordSaved, deleteWord } from "@/lib/storage";
 import { SavedWord, Meaning } from "@/types";
 import { Send, BookmarkPlus, BookmarkCheck, Loader2, Sparkles, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ interface Message {
   text: string;
   wordData?: WordData;
   saved?: boolean;
+  savedWordId?: string;
 }
 
 export default function ChatPage() {
@@ -119,7 +120,14 @@ export default function ChatPage() {
 
     await saveWord(saved);
     setMessages((prev) =>
-      prev.map((m) => (m.id === msgId ? { ...m, saved: true } : m))
+      prev.map((m) => (m.id === msgId ? { ...m, saved: true, savedWordId: saved.id } : m))
+    );
+  }
+
+  async function handleUnsave(msgId: string, savedWordId: string) {
+    await deleteWord(savedWordId);
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, saved: false, savedWordId: undefined } : m))
     );
   }
 
@@ -188,12 +196,15 @@ export default function ChatPage() {
                     </div>
                   )}
                   <Button
-                    onClick={() => handleSave(msg.id, msg.wordData!)}
-                    disabled={msg.saved}
+                    onClick={() =>
+                      msg.saved && msg.savedWordId
+                        ? handleUnsave(msg.id, msg.savedWordId)
+                        : handleSave(msg.id, msg.wordData!)
+                    }
                     size="sm"
                     className={`w-full mt-1 ${
                       msg.saved
-                        ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-emerald-600/20"
+                        ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-red-600/20 hover:text-red-400 hover:border-red-600/30"
                         : "bg-violet-600 hover:bg-violet-500 text-white"
                     }`}
                   >
