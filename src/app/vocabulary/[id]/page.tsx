@@ -67,13 +67,13 @@ export default function WordDetailPage() {
   return (
     <div className="p-8 max-w-3xl mx-auto">
       {/* Back */}
-      <Link
-        href="/vocabulary"
+      <button
+        onClick={() => router.back()}
         className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-8 transition-colors"
       >
         <ArrowLeft size={15} />
-        Vocabulary
-      </Link>
+        Back
+      </button>
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8">
