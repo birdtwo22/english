@@ -274,7 +274,12 @@ export default function Dashboard() {
       {recentWords.length > 0 && (
         <Card className="bg-zinc-900 border-zinc-800">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-zinc-300">Recently Added</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-zinc-300">Recently Added</CardTitle>
+              <Link href="/vocabulary" className="text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1 text-xs">
+                전체보기 <span className="text-base leading-none">›</span>
+              </Link>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
