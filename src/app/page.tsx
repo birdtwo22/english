@@ -284,9 +284,10 @@ export default function Dashboard() {
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {recentWords.map((w) => (
-                <div
+                <Link
                   key={w.id}
-                  className="bg-zinc-800 rounded-xl p-4 flex flex-col gap-2"
+                  href={`/vocabulary/${w.id}`}
+                  className="bg-zinc-800 rounded-xl p-4 flex flex-col gap-2 hover:bg-zinc-700/60 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -297,7 +298,7 @@ export default function Dashboard() {
                     </div>
                     {w.audioUrl && (
                       <button
-                        onClick={() => new Audio(w.audioUrl!).play()}
+                        onClick={(e) => { e.preventDefault(); new Audio(w.audioUrl!).play(); }}
                         className="text-zinc-500 hover:text-violet-400 transition-colors"
                       >
                         <Volume2 size={14} />
@@ -309,7 +310,7 @@ export default function Dashboard() {
                       ?? recentKoreanDefs[w.id]
                       ?? w.meanings[0]?.definitions[0]?.definition}
                   </p>
-                </div>
+                </Link>
               ))}
             </div>
           </CardContent>
