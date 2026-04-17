@@ -141,14 +141,14 @@ export default function VocabularyPage() {
                 <span className="text-xs text-zinc-600">{group.length} words</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-3">
                 {group.map((w) => <WordCard key={w.id} w={w} />)}
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-3">
           {filtered.map((w) => <WordCard key={w.id} w={w} />)}
         </div>
       )}
