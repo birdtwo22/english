@@ -131,7 +131,7 @@ export default function VocabularyPage() {
           </p>
         </div>
       ) : grouped ? (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {grouped.map(({ label, words: group }) => (
             <div key={label}>
               <div className="flex items-center gap-3 mb-3">
@@ -141,14 +141,14 @@ export default function VocabularyPage() {
                 <span className="text-xs text-zinc-600">{group.length} words</span>
                 <div className="flex-1 h-px bg-zinc-800" />
               </div>
-              <div className="space-y-12">
+              <div className="flex flex-col gap-8">
                 {group.map((w) => <WordCard key={w.id} w={w} />)}
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="flex flex-col gap-8">
           {filtered.map((w) => <WordCard key={w.id} w={w} />)}
         </div>
       )}
