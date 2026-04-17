@@ -27,7 +27,7 @@ export default function Dashboard() {
   useEffect(() => {
     getStats().then(setStats);
     getWords().then(async (words) => {
-      const recent = words.slice(0, 6);
+      const recent = words.slice(0, 9);
       setRecentWords(recent);
       setAllWords(words);
 
@@ -296,20 +296,33 @@ export default function Dashboard() {
                         <p className="text-zinc-500 text-xs">{w.phonetic}</p>
                       )}
                     </div>
-                    {w.audioUrl && (
-                      <button
-                        onClick={(e) => { e.preventDefault(); new Audio(w.audioUrl!).play(); }}
-                        className="text-zinc-500 hover:text-violet-400 transition-colors"
-                      >
-                        <Volume2 size={14} />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {w.audioUrl && (
+                        <button
+                          onClick={(e) => { e.preventDefault(); new Audio(w.audioUrl!).play(); }}
+                          className="text-zinc-500 hover:text-violet-400 transition-colors"
+                        >
+                          <Volume2 size={14} />
+                        </button>
+                      )}
+                      <Badge className="text-xs bg-zinc-700 text-zinc-400 border-zinc-600">
+                        {w.meanings[0]?.partOfSpeech}
+                      </Badge>
+                    </div>
                   </div>
+                  {w.koreanTranslation && (
+                    <p className="text-violet-300 text-xs font-medium">{w.koreanTranslation}</p>
+                  )}
                   <p className="text-zinc-400 text-xs line-clamp-2">
                     {w.meanings[0]?.definitions[0]?.koreanDefinition
                       ?? recentKoreanDefs[w.id]
                       ?? w.meanings[0]?.definitions[0]?.definition}
                   </p>
+                  {w.meanings[0]?.definitions[0]?.example && (
+                    <p className="text-zinc-600 text-xs italic line-clamp-2 mt-1">
+                      &ldquo;{w.meanings[0].definitions[0].example}&rdquo;
+                    </p>
+                  )}
                 </Link>
               ))}
             </div>
